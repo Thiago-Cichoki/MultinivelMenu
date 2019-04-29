@@ -1,0 +1,35 @@
+version: '3'
+
+services:
+
+  webserver:
+      container_name: ${APP_NAME}_webserver
+      build:
+          context: ./docker/web
+      ports:
+        - "8000:80"
+        - "443:443"
+      volumes:
+        - ./:/var/www/app
+      depends_on:
+        - database
+
+
+  database:
+    container_name: ${APP_NAME}_database
+    image: mysql:5.7.13
+    volumes:
+      - ./db-dump:/docker-entrypoint-initdb.d
+      - /var/lib/mysql
+      - ./logs:/var/log/mysql
+    command: mysqld --sql_mode="STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION" --general_log=1 --general_log_file='/var/log/mysql/query.log'
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+    ports:
+      - "33062:3306"
+
+  cache:
+    container_name: ${APP_NAME}_cache
+    image: redis:4.0.11
+    ports:
+      - "63790:6379"
